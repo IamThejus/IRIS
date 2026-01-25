@@ -1,18 +1,17 @@
-
 import struct
 import numpy as np
 import tempfile
 import soundfile as sf
+import os
+from ai_engine import *
+from voice import *
 
 from api_calls import *
 from settings import *
 
-###################################### Classifiers #################
-
 def contains(words, text):
+    text = text.lower()
     return all(w in text for w in words)
-
-
 
 print("🎙️ IRIS is listening... Say 'Hey IRIS'")
 
@@ -24,17 +23,17 @@ def record_command():
 
     audio = b"".join(frames)
     audio_np = np.frombuffer(audio, dtype=np.int16)
+    audio_np = audio_np.astype(np.float32) / 32768.0
 
     temp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
     sf.write(temp_wav.name, audio_np, SAMPLE_RATE)
 
     return temp_wav.name
 
-
 try:
     while True:
-        pcm = stream.read(porcupine.frame_length, exception_on_overflow=False)
-        pcm = struct.unpack_from("h" * porcupine.frame_length, pcm)
+        pcm_bytes = stream.read(porcupine.frame_length, exception_on_overflow=False)
+        pcm = np.frombuffer(pcm_bytes, dtype=np.int16)
 
         if porcupine.process(pcm) >= 0:
             print("🟢 Wake word detected!")
@@ -42,19 +41,14 @@ try:
 
             wav_file = record_command()
 
-            segments, info = whisper.transcribe(
-                wav_file,
-                language="en"
-            )
+            segments, info = whisper.transcribe(wav_file, language="en")
 
-            text = ""
-            for segment in segments:
-                text += segment.text
+            os.remove(wav_file)
 
+            text = "".join(segment.text for segment in segments)
             command = text.strip().lower()
-            print("🗣️ Command:", command)
 
-            # ===== INTENT EXAMPLES =====
+            print("🗣️ Command:", command)
 
             if contains(["fan", "on"], command) or "start fan" in command:
                 turn_on_off()
@@ -64,9 +58,13 @@ try:
 
             elif contains(["fan", "decrease"], command) or "slow down" in command:
                 speeddown()
+
             elif "close" in command:
                 print("🛑 Exiting IRIS")
                 break
+            else:
+                reply=get_ai_reply(command)
+                speak(reply)
 
             print("👂 Waiting for wake word...\n")
 
