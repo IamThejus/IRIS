@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IRIS — Intelligent Responsive Interface System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --idle-color:      #6c63ff;
+      --idle-glow:       rgba(108, 99, 255, 0.35);
+      --listen-color:    #00e5ff;
+      --listen-glow:     rgba(0, 229, 255, 0.4);
+      --think-color:     #d63af9;
+      --think-glow:      rgba(214, 58, 249, 0.4);
+      --speak-color:     #ff9500;
+      --speak-glow:      rgba(255, 149, 0, 0.4);
+      --action-color:    #00e676;
+      --action-glow:     rgba(0, 230, 118, 0.4);
+      --bg: #080810;
+      --surface: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f0f0ff;
+      --text-muted: rgba(240,240,255,0.4);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ---- Grid Layout ---- */
+    body {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      grid-template-columns: 1fr;
+      height: 100vh;
+    }
+
+    /* ---- Header ---- */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 40px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,16,0.7);
+      backdrop-filter: blur(12px);
+      z-index: 10;
+    }
+
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #6c63ff, #00e5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: all 0.4s ease;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--idle-color);
+      transition: background 0.4s ease;
+    }
+
+    .status-dot.pulse { animation: dotPulse 1.5s infinite; }
+
+    @keyframes dotPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .time-display {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+    }
+
+    /* ---- Main Stage ---- */
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background ambient radial */
+    main::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, var(--idle-glow) 0%, transparent 70%);
+      transition: background 0.8s ease;
+      pointer-events: none;
+    }
+    body.listening main::before  { background: radial-gradient(ellipse 60% 60% at 50% 50%, var(--listen-glow) 0%, transparent 70%); }
+    body.thinking main::before   { background: radial-gradient(ellipse 60% 60% at 50% 50%, var(--think-glow)  0%, transparent 70%); }
+    body.speaking main::before   { background: radial-gradient(ellipse 60% 60% at 50% 50%, var(--speak-glow)  0%, transparent 70%); }
+    body.action main::before     { background: radial-gradient(ellipse 60% 60% at 50% 50%, var(--action-glow) 0%, transparent 70%); }
+
+    /* ---- Orb Container ---- */
+    .orb-wrapper {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 48px;
+    }
+
+    /* Ripple rings (listening) */
+    .ripple { position: absolute; inset: -30px; border-radius: 50%; border: 2px solid var(--listen-color); opacity: 0; pointer-events: none; }
+    .ripple-1 { animation: none; }
+    .ripple-2 { animation: none; }
+    .ripple-3 { animation: none; }
+
+    body.listening .ripple-1 { animation: ripple 2s 0s infinite; }
+    body.listening .ripple-2 { animation: ripple 2s 0.6s infinite; }
+    body.listening .ripple-3 { animation: ripple 2s 1.2s infinite; }
+
+    @keyframes ripple {
+      0%   { transform: scale(0.8); opacity: 0.7; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* Thinking spin arc */
+    .spin-arc {
+      position: absolute;
+      inset: -18px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: var(--think-color);
+      border-right-color: var(--think-color);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    body.thinking .spin-arc {
+      opacity: 1;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* The main orb */
+    .orb {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      position: relative;
+      background: radial-gradient(circle at 35% 35%, #a099ff, #3a33cc);
+      box-shadow:
+        0 0 40px var(--idle-glow),
+        0 0 80px var(--idle-glow),
+        inset 0 0 30px rgba(0,0,0,0.4);
+      transition: box-shadow 0.6s ease, background 0.6s ease;
+      animation: orbBreath 4s ease-in-out infinite;
+    }
+
+    /* Orb inner glint */
+    .orb::after {
+      content: '';
+      position: absolute;
+      top: 18%;
+      left: 22%;
+      width: 35%;
+      height: 25%;
+      background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, transparent 80%);
+      border-radius: 50%;
+    }
+
+    @keyframes orbBreath {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.04); }
+    }
+
+    /* State: Listening */
+    body.listening .orb {
+      background: radial-gradient(circle at 35% 35%, #7fffff, #00a8c6);
+      box-shadow:
+        0 0 50px var(--listen-glow),
+        0 0 100px var(--listen-glow),
+        inset 0 0 30px rgba(0,0,0,0.3);
+      animation: orbPop 0.5s ease forwards, orbBreath 3s 0.5s ease-in-out infinite;
+    }
+
+    @keyframes orbPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.12); }
+      100% { transform: scale(1.06); }
+    }
+
+    /* State: Thinking */
+    body.thinking .orb {
+      background: radial-gradient(circle at 35% 35%, #f09aff, #9b00d4);
+      box-shadow:
+        0 0 50px var(--think-glow),
+        0 0 100px var(--think-glow),
+        inset 0 0 30px rgba(0,0,0,0.3);
+      animation: orbBreath 1.5s ease-in-out infinite;
+    }
+
+    /* State: Speaking — waveform bars */
+    .wave-bars {
+      position: absolute;
+      inset: -28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    body.speaking .wave-bars { opacity: 1; }
+
+    .bar {
+      width: 4px;
+      border-radius: 4px;
+      background: var(--speak-color);
+      transform-origin: bottom center;
+    }
+    .bar-1  { height: 24px; }
+    .bar-2  { height: 36px; }
+    .bar-3  { height: 50px; }
+    .bar-4  { height: 64px; }
+    .bar-5  { height: 80px; }
+    .bar-6  { height: 64px; }
+    .bar-7  { height: 50px; }
+    .bar-8  { height: 36px; }
+    .bar-9  { height: 24px; }
+
+    body.speaking .bar { animation: barDance 0.6s ease-in-out infinite alternate; }
+    body.speaking .bar-1 { animation-delay: 0s;    animation-duration: 0.5s; }
+    body.speaking .bar-2 { animation-delay: 0.07s; animation-duration: 0.55s; }
+    body.speaking .bar-3 { animation-delay: 0.14s; animation-duration: 0.6s;  }
+    body.speaking .bar-4 { animation-delay: 0.21s; animation-duration: 0.5s;  }
+    body.speaking .bar-5 { animation-delay: 0.28s; animation-duration: 0.65s; }
+    body.speaking .bar-6 { animation-delay: 0.21s; animation-duration: 0.5s;  }
+    body.speaking .bar-7 { animation-delay: 0.14s; animation-duration: 0.6s;  }
+    body.speaking .bar-8 { animation-delay: 0.07s; animation-duration: 0.55s; }
+    body.speaking .bar-9 { animation-delay: 0s;    animation-duration: 0.5s;  }
+
+    @keyframes barDance {
+      from { transform: scaleY(0.3); opacity: 0.7; }
+      to   { transform: scaleY(1.0); opacity: 1; }
+    }
+
+    body.speaking .orb {
+      background: radial-gradient(circle at 35% 35%, #ffd07a, #cc6600);
+      box-shadow:
+        0 0 50px var(--speak-glow),
+        0 0 100px var(--speak-glow),
+        inset 0 0 30px rgba(0,0,0,0.3);
+      animation: orbBreath 2s ease-in-out infinite;
+    }
+
+    /* State: Action */
+    body.action .orb {
+      background: radial-gradient(circle at 35% 35%, #80ffb4, #009952);
+      box-shadow:
+        0 0 50px var(--action-glow),
+        0 0 100px var(--action-glow),
+        inset 0 0 30px rgba(0,0,0,0.3);
+      animation: orbFlash 0.4s ease 2, orbBreath 4s ease-in-out infinite 0.8s;
+    }
+    @keyframes orbFlash {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.15); }
+    }
+
+    /* ---- IRIS text mark inside orb ---- */
+    .orb-label {
+      position: absolute;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.7);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* ---- Caption area ---- */
+    .caption-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+      max-width: 600px;
+      padding: 0 24px;
+    }
+
+    .state-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--idle-color);
+      transition: color 0.5s;
+    }
+    body.listening .state-label { color: var(--listen-color); }
+    body.thinking  .state-label { color: var(--think-color); }
+    body.speaking  .state-label { color: var(--speak-color); }
+    body.action    .state-label { color: var(--action-color); }
+
+    .main-text {
+      font-size: 24px;
+      font-weight: 300;
+      line-height: 1.4;
+      color: var(--text-primary);
+      min-height: 70px;
+      transition: opacity 0.3s;
+    }
+
+    .main-text.fade { opacity: 0; }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: currentColor;
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+    body:not(.speaking) .cursor-blink,
+    body:not(.thinking) .cursor-blink { display: none; }
+    body.thinking .cursor-blink { animation: blink 0.6s step-end infinite; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ---- History Log ---- */
+    footer {
+      padding: 0 40px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .history-scroll {
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+
+    .history-item {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .history-item .you  { color: var(--listen-color); font-weight: 600; white-space: nowrap; }
+    .history-item .iris { color: var(--speak-color);  font-weight: 600; white-space: nowrap; }
+    .history-item .action-tag { color: var(--action-color); font-weight: 600; white-space: nowrap; }
+    .history-item .msg  { color: rgba(240,240,255,0.75); }
+
+    .no-history {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 6px 0;
+    }
+
+    /* ---- Connection indicator ---- */
+    .conn-indicator {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff3b30;
+      transition: background 0.4s;
+      display: inline-block;
+    }
+    .conn-indicator.connected { background: #34c759; }
+  </style>
+</head>
+<body class="idle">
+
+  <header>
+    <div class="logo">IRIS</div>
+    <div class="status-badge">
+      <span class="conn-indicator" id="connDot"></span>
+      <span id="connLabel">Connecting…</span>
+    </div>
+    <div class="time-display" id="clock">--:--:--</div>
+  </header>
+
+  <main>
+    <div class="orb-wrapper">
+      <!-- Ripple rings for listening -->
+      <div class="ripple ripple-1"></div>
+      <div class="ripple ripple-2"></div>
+      <div class="ripple ripple-3"></div>
+
+      <!-- Thinking arc -->
+      <div class="spin-arc"></div>
+
+      <!-- Main orb -->
+      <div class="orb" id="orb">
+        <span class="orb-label">IRIS</span>
+      </div>
+
+      <!-- Speaking wave bars -->
+      <div class="wave-bars">
+        <div class="bar bar-1"></div>
+        <div class="bar bar-2"></div>
+        <div class="bar bar-3"></div>
+        <div class="bar bar-4"></div>
+        <div class="bar bar-5"></div>
+        <div class="bar bar-6"></div>
+        <div class="bar bar-7"></div>
+        <div class="bar bar-8"></div>
+        <div class="bar bar-9"></div>
+      </div>
+    </div>
+
+    <div class="caption-area">
+      <div class="state-label" id="stateLabel">● IDLE — Waiting for wake word</div>
+      <div class="main-text" id="mainText">
+        Say <strong>"Hey IRIS"</strong> to begin…<span class="cursor-blink"></span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="history-label">Conversation Log</div>
+    <div class="history-scroll" id="historyLog">
+      <div class="no-history" id="noHistory">No activity yet…</div>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Clock ----
+    const clockEl = document.getElementById('clock');
+    function updateClock() {
+      const now = new Date();
+      clockEl.textContent = now.toLocaleTimeString('en-US', {hour12: false});
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // ---- State machine ----
+    const body       = document.body;
+    const stateLabel = document.getElementById('stateLabel');
+    const mainText   = document.getElementById('mainText');
+    const historyLog = document.getElementById('historyLog');
+    const noHistory  = document.getElementById('noHistory');
+    const connDot    = document.getElementById('connDot');
+    const connLabel  = document.getElementById('connLabel');
+    const statusDot  = document.querySelector('.status-dot');
+
+    const STATE_META = {
+      idle:      { label: '● IDLE — Waiting for wake word',   text: 'Say <strong>"Hey IRIS"</strong> to begin…' },
+      listening: { label: '● LISTENING — Speak your command', text: 'Listening…<span class="cursor-blink"></span>' },
+      thinking:  { label: '● THINKING — Processing',          text: '' },
+      speaking:  { label: '● SPEAKING — Playing response',    text: '' },
+      action:    { label: '● ACTION EXECUTED',                 text: '' },
+    };
+
+    let currentState = 'idle';
+    let pendingCommand = '';
+
+    function setState(state, data = {}) {
+      // Remove old state, add new
+      body.classList.remove(currentState);
+      body.classList.add(state);
+      currentState = state;
+
+      const meta = STATE_META[state];
+      stateLabel.textContent = meta.label.replace('●', '');
+      stateLabel.innerHTML = meta.label;
+
+      if (state === 'thinking') {
+        pendingCommand = data.command || '';
+        setTextFade(`"${pendingCommand}"<span class="cursor-blink"></span>`);
+      } else if (state === 'speaking') {
+        typeText(data.reply || '');
+      } else if (state === 'action') {
+        setTextFade(`✓ <strong>${data.result || 'Command executed'}</strong>`);
+        setTimeout(() => setState('idle'), 3000);
+      } else {
+        setTextFade(meta.text);
+      }
+    }
+
+    function setTextFade(html) {
+      mainText.classList.add('fade');
+      setTimeout(() => {
+        mainText.innerHTML = html;
+        mainText.classList.remove('fade');
+      }, 200);
+    }
+
+    // Typewriter effect for replies
+    function typeText(text) {
+      mainText.classList.add('fade');
+      setTimeout(() => {
+        mainText.innerHTML = '';
+        mainText.classList.remove('fade');
+        let i = 0;
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor-blink';
+        mainText.appendChild(cursor);
+
+        const tick = setInterval(() => {
+          if (i < text.length) {
+            cursor.insertAdjacentText('beforebegin', text[i]);
+            i++;
+          } else {
+            clearInterval(tick);
+          }
+        }, 28);
+      }, 200);
+    }
+
+    // Add entry to conversation log
+    function addHistory(type, text1, text2) {
+      if (noHistory) noHistory.remove();
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      if (type === 'exchange') {
+        item.innerHTML = `
+          <span class="you">You</span>
+          <span class="msg">${escHtml(text1)}</span>
+          <span class="iris">IRIS</span>
+          <span class="msg">${escHtml(text2)}</span>`;
+      } else if (type === 'action') {
+        item.innerHTML = `
+          <span class="you">You</span>
+          <span class="msg">${escHtml(text1)}</span>
+          <span class="action-tag">Action</span>
+          <span class="msg">${escHtml(text2)}</span>`;
+      }
+      historyLog.appendChild(item);
+      historyLog.scrollTop = historyLog.scrollHeight;
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ---- WebSocket ----
+    let ws, reconnectTimer;
+
+    function connect() {
+      if (ws) ws.close();
+      ws = new WebSocket(`ws://${location.host}/ws`);
+
+      ws.onopen = () => {
+        connDot.classList.add('connected');
+        connLabel.textContent = 'Connected';
+        clearTimeout(reconnectTimer);
+      };
+
+      ws.onclose = ws.onerror = () => {
+        connDot.classList.remove('connected');
+        connLabel.textContent = 'Reconnecting…';
+        setState('idle');
+        reconnectTimer = setTimeout(connect, 2500);
+      };
+
+      ws.onmessage = (ev) => {
+        let msg;
+        try { msg = JSON.parse(ev.data); } catch { return; }
+
+        switch (msg.state) {
+          case 'idle':
+            setState('idle');
+            break;
+          case 'listening':
+            setState('listening');
+            break;
+          case 'thinking':
+            setState('thinking', { command: msg.command });
+            break;
+          case 'speaking':
+            setState('speaking', { reply: msg.reply });
+            break;
+          case 'action':
+            addHistory('action', msg.command, msg.result);
+            setState('action', { result: msg.result });
+            break;
+          case 'history':
+            addHistory('exchange', msg.command, msg.reply);
+            break;
+        }
+      };
+    }
+
+    connect();
+  </script>
+</body>
+</html>

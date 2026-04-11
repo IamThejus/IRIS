@@ -2,7 +2,7 @@ from faster_whisper import WhisperModel
 import pvporcupine
 import pyaudio
 # ================== SETTINGS ==================
-ACCESS_KEY = "9N0aoPuDnlrN0wLoh4qzVmxfyeDnVJJXLIoQ91Sg2T+OIiu3VGtC4A=="
+ACCESS_KEY = "/nJOsIk+S58a5d5VDAshf9LzMs4422wJALLkl8+otvtj5AIM3SS9kA=="
 WAKE_WORD_FILE = "iris.ppn"
 
 WHISPER_MODEL = "base.en"   # or "tiny.en" or  "base.en" 
@@ -13,8 +13,8 @@ RECORD_SECONDS = 4          # command length
 # Load Whisper
 whisper = WhisperModel(
     WHISPER_MODEL,
-    device="cpu",
-    compute_type="int8"   # IMPORTANT for Pi 4
+    device="cuda",
+    compute_type="float16"  # GPU accelerated on RTX 3050
 )
 
 # Load Porcupine
