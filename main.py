@@ -13,7 +13,7 @@ import uvicorn
 
 from ai_engine import get_ai_reply
 from voice import speak
-from api_calls import turn_on_off, speedup, speeddown
+from api_calls import turn_on_off, speedup, speeddown,turn_on_off_ac,ac_cool,ac_hot
 from settings import porcupine, stream, whisper, SAMPLE_RATE, pa
 
 # ─────────────────────────────────────────────
@@ -99,18 +99,58 @@ def hardware_loop():
                 if contains(["fan", "on"], command) or "start fan" in command:
                     turn_on_off()
                     broadcast_sync({"state": "action", "command": command, "result": "Fan toggled ✓"})
+                    speak("fan is turned on")
                     print("👂 Waiting for wake word...\n")
                     continue
 
                 elif contains(["fan", "increase"], command) or "speed up" in command:
                     speedup()
                     broadcast_sync({"state": "action", "command": command, "result": "Fan speed increased ✓"})
+                    speak("fan speed increased")
                     print("👂 Waiting for wake word...\n")
                     continue
 
                 elif contains(["fan", "decrease"], command) or "slow down" in command:
                     speeddown()
                     broadcast_sync({"state": "action", "command": command, "result": "Fan speed decreased ✓"})
+                    speak("fan speed decreased")
+                    print("👂 Waiting for wake word...\n")
+                    continue
+
+                elif contains(["fan", "off"], command) or "slow down" in command:
+                    turn_on_off()
+                    broadcast_sync({"state": "action", "command": command, "result": "Fan turning  Off ✓"})
+                    speak("fan is turned off")
+                    print("👂 Waiting for wake word...\n")
+                    continue
+
+                ## For AC
+
+                elif contains(["ac", "on"], command):
+                    turn_on_off_ac()
+                    broadcast_sync({"state": "action", "command": command, "result": "AC turning  On ✓"})
+                    speak("AC is turned on")
+                    print("👂 Waiting for wake word...\n")
+                    continue
+
+                elif contains(["ac", "off"], command) :
+                    turn_on_off_ac()
+                    broadcast_sync({"state": "action", "command": command, "result": "AC turning  Off ✓"})
+                    speak("AC is turned off")
+                    print("👂 Waiting for wake word...\n")
+                    continue
+
+                elif contains(["ac", "increase"], command) :
+                    ac_hot()
+                    broadcast_sync({"state": "action", "command": command, "result": "AC Temperature  Increased ✓"})
+                    speak("AC temperature increased")
+                    print("👂 Waiting for wake word...\n")
+                    continue
+
+                elif contains(["ac", "decrease"], command) :
+                    ac_hot()
+                    broadcast_sync({"state": "action", "command": command, "result": "AC Temperature  Decreased ✓"})
+                    speak("AC temperature decreased")
                     print("👂 Waiting for wake word...\n")
                     continue
 
@@ -162,7 +202,7 @@ app = FastAPI(lifespan=lifespan)
 # ─────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 async def serve_ui():
-    with open("web_ui/index.html", "r") as f:
+    with open("web_ui/index.html", "r",encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
 @app.websocket("/ws")

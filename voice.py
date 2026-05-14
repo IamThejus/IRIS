@@ -1,9 +1,10 @@
 import subprocess
 import tempfile
 import os
+import winsound
 
-PIPER_BIN = "piper"
-VOICE_MODEL = "voices/en_US-amy-medium.onnx"
+PIPER_BIN = r"D:\Github\IRIS\piper\piper.exe"
+VOICE_MODEL = r"D:\Github\IRIS\voices\en_US-amy-medium.onnx"
 
 def speak(text):
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
@@ -17,18 +18,13 @@ def speak(text):
 
     process = subprocess.Popen(
         cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
+        stdin=subprocess.PIPE
     )
 
     process.stdin.write(text.encode("utf-8"))
     process.stdin.close()
     process.wait()
 
-    # Play audio
-    os.system(f"aplay {wav_path}")
+    winsound.PlaySound(wav_path, winsound.SND_FILENAME)
 
     os.remove(wav_path)
-
-

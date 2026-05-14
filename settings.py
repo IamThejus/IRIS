@@ -5,19 +5,18 @@ import pyaudio
 ACCESS_KEY = "/nJOsIk+S58a5d5VDAshf9LzMs4422wJALLkl8+otvtj5AIM3SS9kA=="
 WAKE_WORD_FILE = "iris.ppn"
 
-WHISPER_MODEL = "base.en"   # or "tiny.en" or  "base.en" 
+WHISPER_MODEL = "base.en"
 SAMPLE_RATE = 16000
-RECORD_SECONDS = 4          # command length
-# ==============================================
+RECORD_SECONDS = 4
 
-# Load Whisper
+# CPU MODE
+print("WHISPER RUNNING ON CPU")
 whisper = WhisperModel(
     WHISPER_MODEL,
-    device="cuda",
-    compute_type="float16"  # GPU accelerated on RTX 3050
+    device="cpu",
+    compute_type="int8"
 )
 
-# Load Porcupine
 porcupine = pvporcupine.create(
     access_key=ACCESS_KEY,
     keyword_paths=[WAKE_WORD_FILE]

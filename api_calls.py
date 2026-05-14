@@ -35,3 +35,42 @@ def speeddown():
 
     data=requests.post(url,json=payload)
     print(data.status_code)
+
+def turn_on_off_ac():
+    url="https://universal-remote-umber.vercel.app/sendcmd"
+
+    payload={
+        "type":"ac_remote",
+    "model" :"lg_window",
+        "command":"on"
+    }
+
+    data=requests.post(url,json=payload)
+    print(data.status_code)
+
+def ac_cool():
+    url="https://universal-remote-umber.vercel.app/sendcmd"
+
+    payload={
+        "type":"ac_remote",
+    "model" :"lg_window",
+        "command":"on"
+    }
+
+
+    data=requests.post(url,json=payload)
+    print(data.status_code)
+
+def ac_hot():
+    url="https://universal-remote-umber.vercel.app/sendcmd"
+
+    payload={
+        "type":"ac_remote",
+    "model" :"lg_window",
+        "command":"on"
+    }
+
+
+    data=requests.post(url,json=payload)
+    print(data.status_code)
+
