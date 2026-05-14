@@ -5,6 +5,96 @@ An AI-powered local-first smart home assistant capable of controlling real-world
 
 ---
 
+# 📱 Mobile Application UI
+
+## Home Dashboard
+
+<img width="720" height="1600" alt="home" src="https://github.com/user-attachments/assets/1befdd33-0c7e-4a90-a4f2-ee327ebfc514" />
+
+
+The IRIS mobile dashboard provides:
+- Device monitoring
+- System status
+- Active connection tracking
+- Quick smart-home access
+
+---
+
+## LG AC Smart Remote
+
+<img width="720" height="1600" alt="ac remote" src="https://github.com/user-attachments/assets/d62eb1a8-27f3-4ad0-b663-4e28c0ed1938" />
+
+Features:
+- Power Control
+- Temperature Adjustment
+- Mode Selection
+- Fan Speed Control
+- Minimal Dark UI Design
+
+---
+
+## Atomberg Smart Fan Remote
+
+<img width="720" height="1600" alt="fan remote" src="https://github.com/user-attachments/assets/1dcee631-b2c7-487d-9005-5eab9df5e109" />
+
+
+Features:
+- Smart Speed Control
+- Boost Mode
+- Power Monitoring
+- Realtime Device Interaction
+
+---
+
+# 🌐 Web Interface
+
+<img width="1911" height="1079" alt="Webpage" src="https://github.com/user-attachments/assets/11137c97-771f-4e56-bebe-97e452a14edf" />
+
+The realtime web interface includes:
+- Animated AI Orb
+- Live Conversation States
+- Wake Word Monitoring
+- Realtime Logs
+- WebSocket Synchronization
+
+---
+
+# 🔧 Hardware Setup
+
+## IR Receiver Circuit
+
+<img width="728" height="537" alt="micro controller" src="https://github.com/user-attachments/assets/336eb741-e2ba-46a0-8aed-29ede426d3f4" />
+
+Components Used:
+- Raspberry Pi Pico 2W
+- TSOP1738 IR Receiver
+- Breadboard Prototype
+- Jumper Wiring
+
+Used for:
+- Reading IR Signals
+- Capturing Remote Protocols
+- Learning Appliance Commands
+
+---
+
+## IR Transmitter Module
+
+<img width="1777" height="1339" alt="Ir reciever setup" src="https://github.com/user-attachments/assets/46c7d4a8-402e-482c-9fb5-6a8e0e2b517e" />
+
+Components Used:
+- Raspberry Pi Pico 2W
+- IR LED
+- 2N2222 Transistor
+- Battery Input Module
+
+Used for:
+- High-Power IR Transmission
+- Appliance Communication
+- Remote Emulation
+
+---
+
 ## Overview
 
 IRIS (Infra-Red Based Intelligent System) is an advanced smart home ecosystem that combines:
