@@ -382,14 +382,6 @@ Inspired by:
 
 ---
 
-# Creators
-
-Built by:
-
-* Thejus Asokan
-
----
-
 # License
 
 MIT License
